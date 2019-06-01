@@ -19,7 +19,8 @@ xL0, xR0  = -nn*xa, nn*xa
 
 Nx =  int((xR0-xL0)/delta_x)
 
-delta_x = (xR0-xL0)/(Nx)
+print xR0-xL0,Nx
+delta_x = (xR0-xL0)/float(Nx)
 print delta_x
 i_match = int((xa-xL0)/delta_x)  #uLとuRの一致具合をチェックする位置のインデックス。井戸の境界に選んでいる。
 
@@ -45,7 +46,6 @@ def V(x):
         v = 1000.0
     else :
         v = 0
-
     return v
 
 # 境界条件・初期条件セット
@@ -125,6 +125,17 @@ def plot_eigenfunc(color_name):
     plt.legend(loc='upper right')
     plt.show()
 
+def set_condition_even():
+    uL[0]  = 0
+    uR[0] = 0
+    uL[1] =  1e-12
+    uR[1] =  1e-12
+
+def set_condition_odd():
+    uL[0]  = 0
+    uR[0] = 0
+    uL[1] = -1e-12
+    uR[1] =  1e-12
 
 # 解の探索
 
