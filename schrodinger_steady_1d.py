@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-射撃法+ヌメロフ法による時間に依存しない一次元シュレディンガー方程式の解法
-深い井戸型ポテンシャル
-1 Sept. 2017
-"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
@@ -21,10 +17,10 @@ class scheq :
         self.Nx =  int((self.xR0-self.xL0)/self.delta_x)
         self.delta_x = (self.xR0-self.xL0)/float(self.Nx)
         #uLとuRの一致具合をチェックする位置のインデックス。井戸の境界に選んでいる。
-        self.i_match = int((self.xa-self.xL0)/self.delta_x) 
+        self.i_match = int((self.xa-self.xL0)/self.delta_x)
         self.nL = self.i_match
         self.nR = self.Nx-self.nL
-        self.uL = np.zeros([self.nL],float) 
+        self.uL = np.zeros([self.nL],float)
         self.uR = np.zeros([self.nR],float)
         self.E=np.pi**2/4
         self.xL=np.zeros([self.Nx])
@@ -47,15 +43,18 @@ class scheq :
             v = 1000.0
         else :
             v = 0
-        return v    
-    
+        return v
+
+    def harmonic_potential(self,x,k):
+        return (0.5*k*x**2)
+
     # set a cofficient of 1th-order psi
     def setk2(self,E): # for E<0
         for i in range(self.Nx+1):
             xxL = self.xL0 + i*self.delta_x
             xxR = self.xR0 - i*self.delta_x
-            self.k2L[i] = E-self.well_potential(xxL) 
-            self.k2R[i] = E-self.well_potential(xxR) 
+            self.k2L[i] = E-self.well_potential(xxL)
+            self.k2R[i] = E-self.well_potential(xxR)
 
     # 境界条件・初期条件セット
     def set_condition(self):
@@ -76,10 +75,11 @@ class scheq :
         self.uL[1] = -1e-12
         self.uR[1] =  1e-12
 
-    def Numerov(self,N,delta_x,k2,u):  # ヌメロフ法による発展
+    # numerov method
+    def Numerov(self,N,delta_x,k2,u):
         b = (delta_x**2)/12.0
         for i in range(1,N-1):
-            u[i+1] = (2*u[i]*(1-5*b*k2[i])-(1+b*k2[i-1])*u[i-1])/(1+b*k2[i+1]) 
+            u[i+1] = (2*u[i]*(1-5*b*k2[i])-(1+b*k2[i-1])*u[i-1])/(1+b*k2[i+1])
 
     def plot_potential(self):
         # ポテンシャル関数のプロット
@@ -103,14 +103,14 @@ class scheq :
         uLdash = (self.uL[-1]-self.uL[-2])/self.delta_x
         uRdash = (self.uR[-2]-self.uR[-1])/self.delta_x
         logderi_L=  uLdash/self.uL[-1]
-        logderi_R=  uRdash/self.uR[-1]    
+        logderi_R=  uRdash/self.uR[-1]
         return (logderi_L- logderi_R)/(logderi_L+logderi_R)
 
     def normarize_func(self,u):
         factor = ((xR0-xL0)/Nx)*(np.sum(u[1:-2]**2))
         return factor
 
-    def plot_eigenfunc(self,color_name):  
+    def plot_eigenfunc(self,color_name):
         uuu=np.concatenate([uL[0:nL-2],uR[::-1]],axis=0)
         XX=np.linspace(xL0,xR0, len(uuu))
 
@@ -122,7 +122,7 @@ class scheq :
         plt.ylabel('') # y軸のラベル
         plt.legend(loc='upper right')
         plt.show()
-        
+
     def clean(self):
         self.uL = np.zeros([self.nL],float)
         self.uR = np.zeros([self.nR],float)
@@ -132,7 +132,7 @@ class scheq :
         self.EEmin = 0.1
         self.EEmax = 20
         self.delta_EE=0.01
-        
+
         NE = int((self.EEmax-self.EEmin)/self.delta_EE)
         self.Elis = list()
         self.Solved_Eigenvalue = list()
@@ -149,7 +149,7 @@ class scheq :
 
         a1 = self.E_eval()
 
-        if a1 :  
+        if a1 :
             self.Elis.append(EE)
             self.check_Elis.append(a1)
             if np.abs(a1) <= self.eps_E :  #解を見つけた場合のプロット
@@ -185,7 +185,7 @@ class scheq :
         if a1 :  # a1がTrueのとき
             self.Elis.append(EE)
             self.check_Elis.append(a1)
-            if np.abs(a1) <= self.eps_E :           
+            if np.abs(a1) <= self.eps_E :
                 print("Eigen_value = ", EE)
                 self.Solved_Eigenvalue.append(EE)
                 self.plot_eigenfunc("blue")
@@ -206,6 +206,7 @@ if __name__ == "__main__":
     print("xL0,xR0, i_match, delta_x=",qm.xL0,qm.xR0, qm.i_match, qm.delta_x)
     print("Nx, nL,nR=",qm.Nx, qm.nL,qm.nR)
 
+    qm.set_potential("")
     qm.set_condition()
     qm.setk2(qm.E)
 
@@ -214,10 +215,3 @@ if __name__ == "__main__":
     qm.plot_delta_func("blue")
     qm.solve_odd()
     qm.plot_delta_func("red")
-
-
-
-
-
-
-
