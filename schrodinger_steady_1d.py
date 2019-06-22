@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+import hermite
 
 # class for schrodinger equation
 class scheq :
@@ -12,7 +13,7 @@ class scheq :
         self.delta_x=0.05
         self.xa =1 # 井戸の境界。 x=±xaに井戸の端がある。
         self.eps_E=0.005 # 収束条件
-        self.nn=5 #両端から積分を行う際の両端の座標をxa(と-xa0)の何倍にするかを示すパラメータ
+        self.nn=5 #両端から積分を行う際の両端の座標をxa(と-xa)の何倍にするかを示すパラメータ
         self.xL0, self.xR0  = -self.nn*self.xa, self.nn*self.xa
         self.Nx =  int((self.xR0-self.xL0)/self.delta_x)
         self.delta_x = (self.xR0-self.xL0)/float(self.Nx)
@@ -36,6 +37,7 @@ class scheq :
         self.EEmin = 0.0
         self.EEmax = 0.0
         self.delta_EE=0.0
+        self.mass = 0.5
 
     # member func
     def well_potential(self,x): # 井戸型ポテンシャル
@@ -45,33 +47,35 @@ class scheq :
             v = 0
         return v
 
-    def harmonic_potential(self,x,k):
-        return (0.5*k*x**2)
+    def harmonic_potential(self,x):
+        return (-self.mass**2*x**2)
 
     # set a cofficient of 1th-order psi
     def setk2(self,E): # for E<0
         for i in range(self.Nx+1):
             xxL = self.xL0 + i*self.delta_x
             xxR = self.xR0 - i*self.delta_x
-            self.k2L[i] = E-self.well_potential(xxL)
-            self.k2R[i] = E-self.well_potential(xxR)
+            self.k2L[i] = E-self.harmonic_potential(xxL)
+            self.k2R[i] = E-self.harmonic_potential(xxR)
 
-    # 境界条件・初期条件セット
+    # set boundary condtions
     def set_condition(self):
         self.uL[0] = 0.0
-        self.uL[1] = 1e-6
+        self.uL[1] = 1e-12
         self.uR[0] = 0.0
-        self.uR[1] = 1e-6
+        self.uR[1] = 1e-12
 
+    # set boundary condtions
     def set_condition_even(self):
-        self.uL[0] = 0.0
-        self.uR[0] = 0.0
+        self.uL[0] =  0.0
+        self.uR[0] =  0.0
         self.uL[1] =  1e-12
         self.uR[1] =  1e-12
 
+    # set boundary condtions
     def set_condition_odd(self):
-        self.uL[0] = 0.0
-        self.uR[0] = 0.0
+        self.uL[0] =  0.0
+        self.uR[0] =  0.0
         self.uL[1] = -1e-12
         self.uR[1] =  1e-12
 
@@ -127,38 +131,8 @@ class scheq :
         self.uL = np.zeros([self.nL],float)
         self.uR = np.zeros([self.nR],float)
 
-    # boundary condtion (even fuction)
-    def solve_even(self):
-        self.EEmin = 0.1
-        self.EEmax = 20
-        self.delta_EE=0.01
-
-        NE = int((self.EEmax-self.EEmin)/self.delta_EE)
-        self.Elis = list()
-        self.Solved_Eigenvalue = list()
-        self.check_Elis = list()
-        for i in range(NE+1):
-            EE=self.EEmin+i*(self.EEmax-self.EEmin)/NE
-
-        self.clean()
-        self.set_condition_even()
-        self.setk2(EE)
-
-        self.Numerov(self.nL,self.delta_x,self.k2L,self.uL)
-        self.Numerov(self.nR,self.delta_x,self.k2R,self.uR)
-
-        a1 = self.E_eval()
-
-        if a1 :
-            self.Elis.append(EE)
-            self.check_Elis.append(a1)
-            if np.abs(a1) <= self.eps_E :  #解を見つけた場合のプロット
-                print("Eigen_value = ", EE)
-                self.Solved_Eigenvalue.append(EE)
-                self.plot_eigenfunc("blue")
-
-    # boundary condtion (odd function)
-    def solve_odd(self):
+    # boundary condtion (odd or even function)
+    def solve(self,eo):
         self.EEmin=0.1
         self.EEmax = 20
         self.delta_EE=0.01
@@ -175,7 +149,10 @@ class scheq :
 
         self.clean()
 
-        self.set_condition_odd()
+        if eo == "odd" :
+            self.set_condition_odd()
+        elif  eo == "even" :
+            self.set_condition_even()
         self.setk2(EE)
 
         self.Numerov(self.nL,self.delta_x,self.k2L,self.uL)
@@ -200,18 +177,18 @@ class scheq :
         plt.ylabel('Delta_E_function') # y軸のラベル
         plt.show()
 
+
 if __name__ == "__main__":
     qm = scheq()
     print("E= ",qm.E)
     print("xL0,xR0, i_match, delta_x=",qm.xL0,qm.xR0, qm.i_match, qm.delta_x)
     print("Nx, nL,nR=",qm.Nx, qm.nL,qm.nR)
 
-    qm.set_potential("")
     qm.set_condition()
     qm.setk2(qm.E)
 
 # search solution
-    qm.solve_even()
+    qm.solve("even")
     qm.plot_delta_func("blue")
-    qm.solve_odd()
+    qm.solve("odd")
     qm.plot_delta_func("red")
