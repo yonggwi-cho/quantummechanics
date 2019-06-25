@@ -111,14 +111,14 @@ class scheq :
         return (logderi_L- logderi_R)/(logderi_L+logderi_R)
 
     def normarize_func(self,u):
-        factor = ((xR0-xL0)/Nx)*(np.sum(u[1:-2]**2))
+        factor = ((self.xR0-self.xL0)/self.Nx)*(np.sum(u[1:-2]**2))
         return factor
 
     def plot_eigenfunc(self,color_name):
-        uuu=np.concatenate([uL[0:nL-2],uR[::-1]],axis=0)
-        XX=np.linspace(xL0,xR0, len(uuu))
+        uuu=np.concatenate([self.uL[0:self.nL-2],self.uR[::-1]],axis=0)
+        XX=np.linspace(self.xL0,self.xR0, len(uuu))
 
-        factor=np.sqrt(normarize_func(uuu))
+        factor=np.sqrt(self.normarize_func(uuu))
 
         plt.plot(XX,uuu/factor,'-',color=color_name,label='Psi')
         plt.plot(XX,(uuu/factor)**2,'-',color='red',label='| Psi |^2')
@@ -133,7 +133,7 @@ class scheq :
 
     # boundary condtion (odd or even function)
     def solve(self,eo):
-        self.EEmin=0.1
+        self.EEmin = 0.1
         self.EEmax = 20
         self.delta_EE=0.01
 
@@ -144,28 +144,28 @@ class scheq :
         for i in range(NE+1):
             EE=self.EEmin+i*(self.EEmax-self.EEmin)/NE
 
-        self.nL = self.i_match
-        self.nR = self.Nx-self.nL
+            self.nL = self.i_match
+            self.nR = self.Nx-self.nL
 
-        self.clean()
+            self.clean()
 
-        if eo == "odd" :
-            self.set_condition_odd()
-        elif  eo == "even" :
-            self.set_condition_even()
-        self.setk2(EE)
+            if eo == "odd" :
+                self.set_condition_odd()
+            elif  eo == "even" :
+                self.set_condition_even()
+            self.setk2(EE)
 
-        self.Numerov(self.nL,self.delta_x,self.k2L,self.uL)
-        self.Numerov(self.nR,self.delta_x,self.k2R,self.uR)
+            self.Numerov(self.nL,self.delta_x,self.k2L,self.uL)
+            self.Numerov(self.nR,self.delta_x,self.k2R,self.uR)
 
-        a1= self.E_eval()
-        if a1 :  # a1がTrueのとき
-            self.Elis.append(EE)
-            self.check_Elis.append(a1)
-            if np.abs(a1) <= self.eps_E :
-                print("Eigen_value = ", EE)
-                self.Solved_Eigenvalue.append(EE)
-                self.plot_eigenfunc("blue")
+            a1= self.E_eval()
+            if a1 :  # a1がTrueのとき
+                self.Elis.append(EE)
+                self.check_Elis.append(a1)
+                if np.abs(a1) <= self.eps_E :
+                    print("Eigen_value = ", EE)
+                    self.Solved_Eigenvalue.append(EE)
+                    self.plot_eigenfunc("blue")
 
     def plot_delta_func(self,c):
         plt.plot(self.Elis, self.check_Elis, 'o',markersize=3, color=c,linewidth=1)
@@ -181,14 +181,14 @@ class scheq :
 if __name__ == "__main__":
     qm = scheq()
     print("E= ",qm.E)
-    print("xL0,xR0, i_match, delta_x=",qm.xL0,qm.xR0, qm.i_match, qm.delta_x)
+    print("xL0,xR0, i_match, delta_x=", qm.xL0, qm.xR0, qm.i_match, qm.delta_x)
     print("Nx, nL,nR=",qm.Nx, qm.nL,qm.nR)
 
-    qm.set_condition()
+    #qm.set_condition()
     qm.setk2(qm.E)
 
 # search solution
     qm.solve("even")
-    qm.plot_delta_func("blue")
+    #qm.plot_delta_func("blue")
     qm.solve("odd")
-    qm.plot_delta_func("red")
+    #qm.plot_delta_func("red")

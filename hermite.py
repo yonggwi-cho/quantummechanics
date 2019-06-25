@@ -35,8 +35,6 @@ def plot(n):
     x = np.array(range(0,-100,-1),dtype=float)
     x *= 0.1
     y = [hermite(n,i) for i in x ]
-    print x
-    print y
     plt.plot(x,y,"r-")
 
     # plot
