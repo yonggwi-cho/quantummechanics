@@ -1,1 +1,2 @@
-# quantummechanics
+# QuantumMechanics
+solver for Schrodinger equation
